@@ -31,7 +31,7 @@ export interface RedditPost {
 }
 
 export interface StreamEvent {
-  type: "status" | "report" | "error" | "done";
+  type: "status" | "report" | "report_chunk" | "error" | "done";
   message?: string;
   content?: string;
 }

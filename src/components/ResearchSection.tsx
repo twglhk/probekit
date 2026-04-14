@@ -5,7 +5,9 @@ import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
 import type { StreamEvent } from "@/types";
 
-type Phase = "idle" | "loading" | "done" | "error";
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "";
+
+type Phase = "idle" | "loading" | "streaming" | "done" | "error";
 
 export default function ResearchSection() {
   const [phase, setPhase] = useState<Phase>("idle");
@@ -26,7 +28,11 @@ export default function ResearchSection() {
       setErrorMsg("");
 
       try {
-        const res = await fetch("/api/research", {
+        const endpoint = API_URL
+          ? `${API_URL}/api/v1/research`
+          : "/api/research";
+
+        const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ problem: problem.trim(), email: email.trim() }),
@@ -63,15 +69,22 @@ export default function ResearchSection() {
                 setReport(event.content || "");
                 setPhase("done");
                 break;
+              case "report_chunk":
+                setReport((prev) => prev + (event.content || ""));
+                setPhase("streaming");
+                break;
               case "error":
                 setErrorMsg(event.message || "Something went wrong");
                 setPhase("error");
                 break;
               case "done":
+                setPhase("done");
                 break;
             }
           }
         }
+
+        setPhase((p) => (p === "streaming" ? "done" : p));
       } catch (err) {
         setErrorMsg(err instanceof Error ? err.message : "Something went wrong");
         setPhase("error");
@@ -142,7 +155,7 @@ export default function ResearchSection() {
         </div>
       )}
 
-      {phase === "done" && (
+      {(phase === "streaming" || phase === "done") && (
         <div className="space-y-6">
           <article className="prose prose-gray max-w-none prose-headings:font-semibold prose-blockquote:border-l-blue-500 prose-blockquote:text-gray-600">
             <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -150,17 +163,26 @@ export default function ResearchSection() {
             </ReactMarkdown>
           </article>
 
-          <div className="border-t pt-6 text-center">
-            <p className="text-sm text-gray-500">
-              Want deeper analysis for your business?
-            </p>
-            <a
-              href="#"
-              className="mt-2 inline-block text-sm font-medium text-blue-600 hover:text-blue-700"
-            >
-              Learn more about ProbeKit →
-            </a>
-          </div>
+          {phase === "streaming" && (
+            <div className="flex items-center gap-2 py-2">
+              <div className="h-2 w-2 rounded-full bg-blue-500 animate-pulse" />
+              <span className="text-sm text-gray-400">Writing report...</span>
+            </div>
+          )}
+
+          {phase === "done" && (
+            <div className="border-t pt-6 text-center">
+              <p className="text-sm text-gray-500">
+                Want deeper analysis for your business?
+              </p>
+              <a
+                href="#"
+                className="mt-2 inline-block text-sm font-medium text-blue-600 hover:text-blue-700"
+              >
+                Learn more about ProbeKit →
+              </a>
+            </div>
+          )}
         </div>
       )}
 
