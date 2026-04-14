@@ -60,7 +60,7 @@ export async function POST(req: Request) {
     send({ type: "status", message: "Checking access..." });
 
     const { count: ipCount } = await supabase
-      .from("leads")
+      .from("probekit_leads")
       .select("*", { count: "exact", head: true })
       .eq("ip_address", ip)
       .gte("created_at", new Date(Date.now() - 86_400_000).toISOString());
@@ -74,7 +74,7 @@ export async function POST(req: Request) {
     }
 
     const { count: emailCount } = await supabase
-      .from("leads")
+      .from("probekit_leads")
       .select("*", { count: "exact", head: true })
       .eq("email", email.toLowerCase());
 
@@ -87,7 +87,7 @@ export async function POST(req: Request) {
     }
 
     const leadId = crypto.randomUUID();
-    await supabase.from("leads").insert({
+    await supabase.from("probekit_leads").insert({
       id: leadId,
       email: email.toLowerCase(),
       problem: problem.trim(),
@@ -122,7 +122,7 @@ export async function POST(req: Request) {
       posts,
     );
 
-    await supabase.from("reports").insert({
+    await supabase.from("probekit_reports").insert({
       id: crypto.randomUUID(),
       lead_id: leadId,
       content: report,

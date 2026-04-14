@@ -1,4 +1,4 @@
-CREATE TABLE leads (
+CREATE TABLE probekit_leads (
   id UUID PRIMARY KEY,
   email TEXT NOT NULL,
   problem TEXT NOT NULL,
@@ -6,13 +6,13 @@ CREATE TABLE leads (
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE TABLE reports (
+CREATE TABLE probekit_reports (
   id UUID PRIMARY KEY,
-  lead_id UUID REFERENCES leads(id),
+  lead_id UUID REFERENCES probekit_leads(id),
   content TEXT NOT NULL,
   search_data JSONB,
   created_at TIMESTAMPTZ DEFAULT now()
 );
 
-CREATE INDEX idx_leads_ip_created ON leads(ip_address, created_at);
-CREATE INDEX idx_leads_email ON leads(email);
+CREATE INDEX idx_probekit_leads_ip ON probekit_leads(ip_address, created_at);
+CREATE INDEX idx_probekit_leads_email ON probekit_leads(email);
